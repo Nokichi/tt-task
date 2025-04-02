@@ -1,0 +1,12 @@
+server:
+  port: ${APP_PORT:8080}
+spring:
+  application:
+    name: tt-task
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/tt_task
+    username: test
+    password: ${DB_PG_PWD}
+services:
+  user-service-url: http://localhost:8081
