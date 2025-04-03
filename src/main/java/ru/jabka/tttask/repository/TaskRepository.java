@@ -8,6 +8,7 @@ import ru.jabka.tttask.exception.BadRequestException;
 import ru.jabka.tttask.model.Task;
 import ru.jabka.tttask.repository.mapper.TaskMapper;
 
+import java.sql.Types;
 import java.util.List;
 
 @Repository
@@ -24,14 +25,11 @@ public class TaskRepository {
             """;
 
     private static final String GET_BY_ID = """
-            SELECT *
+            SELECT t.*
             FROM tt.task t
+            JOIN tt.status s ON s.id = t.status
             WHERE t.id = :id
-              AND t.status NOT IN (
-                  SELECT s.id
-                  FROM tt.status s
-                  WHERE s.name = 'DELETED'
-              )
+              AND s.name <> 'DELETED'
             """;
 
     private static final String UPDATE = """
@@ -44,15 +42,13 @@ public class TaskRepository {
     private static final String GET_BY_FILTER = """
             SELECT *
             FROM tt.task t
-            WHERE t.status NOT IN (
-                SELECT s.id
-                FROM tt.status s
-                WHERE s.name = 'DELETED'
-            )
-            AND (
-                t.status IN (:status, -1)
-                OR t.assignee IN (:assignee, -1)
-            )
+            JOIN tt.status s ON s.id = t.status
+            WHERE s.name <> 'DELETED'
+              AND (
+                  (:status IS NULL OR t.status = :status)
+                  AND
+                  (:assignee IS NULL OR t.assignee = :assignee)
+              )
             """;
 
     public Task insert(final Task task) {
@@ -73,8 +69,8 @@ public class TaskRepository {
 
     public List<Task> getByFilter(final Long status, final Long assignee) {
         return jdbcTemplate.query(GET_BY_FILTER, new MapSqlParameterSource()
-                .addValue("status", status)
-                .addValue("assignee", assignee), taskMapper);
+                .addValue("status", status, Types.INTEGER)
+                .addValue("assignee", assignee, Types.INTEGER), taskMapper);
     }
 
     private MapSqlParameterSource taskToSql(Task task) {

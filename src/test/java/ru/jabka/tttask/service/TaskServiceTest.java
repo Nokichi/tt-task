@@ -105,10 +105,10 @@ class TaskServiceTest {
     void getAllByFilter_success_onlyStatus() {
         final Status status = Status.TO_DO;
         final List<Task> taskList = List.of(getValidTask());
-        Mockito.when(taskRepository.getByFilter(status.getId(), -1L)).thenReturn(taskList);
+        Mockito.when(taskRepository.getByFilter(status.getId(), null)).thenReturn(taskList);
         Set<Task> result = taskService.getAllByFilter(status, null);
         Assertions.assertEquals(Set.copyOf(taskList), result);
-        Mockito.verify(taskRepository).getByFilter(status.getId(), -1L);
+        Mockito.verify(taskRepository).getByFilter(status.getId(), null);
         Mockito.verify(userClient, Mockito.never()).getAllByIds(Mockito.any());
     }
 
@@ -118,10 +118,10 @@ class TaskServiceTest {
         final List<Task> taskList = List.of(getValidTask());
         Set<Long> ids = Set.of(assignee);
         Mockito.when(userClient.getAllByIds(ids)).thenReturn(idSetToUserResponseSet(ids));
-        Mockito.when(taskRepository.getByFilter(-1L, assignee)).thenReturn(taskList);
+        Mockito.when(taskRepository.getByFilter(null, assignee)).thenReturn(taskList);
         Set<Task> result = taskService.getAllByFilter(null, assignee);
         Assertions.assertEquals(Set.copyOf(taskList), result);
-        Mockito.verify(taskRepository).getByFilter(-1L, assignee);
+        Mockito.verify(taskRepository).getByFilter(null, assignee);
         Mockito.verify(userClient).getAllByIds(ids);
     }
 

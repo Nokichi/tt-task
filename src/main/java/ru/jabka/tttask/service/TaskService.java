@@ -70,9 +70,8 @@ public class TaskService {
     @Transactional(readOnly = true)
     public Set<Task> getAllByFilter(final Status status, final Long assignee) {
         ofNullable(assignee).ifPresent(x -> checkMembersExists(Collections.singleton(x)));
-        Long requiredStatus = status == null ? -1L : status.getId();
-        Long requiredAssignee = assignee == null ? -1L : assignee;
-        return Set.copyOf(taskRepository.getByFilter(requiredStatus, requiredAssignee));
+        Long statusId = status == null ? null : status.getId();
+        return Set.copyOf(taskRepository.getByFilter(statusId, assignee));
     }
 
     private void validateTaskRequest(final TaskRequest taskRequest) {
