@@ -20,8 +20,4 @@ public class UserClient {
                 .collect(Collectors.joining("&ids="));
         return Set.of(userService.getForObject("/api/v1/user?ids=" + queryParams, UserResponse[].class));
     }
-
-    public UserResponse getById(final Long id) {
-        return userService.getForObject("/api/v1/user/" + id, UserResponse.class);
-    }
 }

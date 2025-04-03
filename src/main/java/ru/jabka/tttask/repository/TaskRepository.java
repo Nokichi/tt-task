@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
+import ru.jabka.tttask.exception.BadRequestException;
 import ru.jabka.tttask.model.Task;
 import ru.jabka.tttask.repository.mapper.TaskMapper;
 
@@ -62,7 +63,7 @@ public class TaskRepository {
         try {
             return jdbcTemplate.queryForObject(GET_BY_ID, new MapSqlParameterSource("id", id), taskMapper);
         } catch (Throwable e) {
-            throw new RuntimeException(String.format("Задача с id %d не найдена", id));
+            throw new BadRequestException(String.format("Задача с id %d не найдена", id));
         }
     }
 

@@ -1,7 +1,10 @@
 package ru.jabka.tttask.model;
 
+import lombok.Builder;
+
 import java.time.LocalDate;
 
+@Builder
 public record UpdateTask(
         Long id,
         String title,

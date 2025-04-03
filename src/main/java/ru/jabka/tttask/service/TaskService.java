@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import ru.jabka.tttask.client.UserClient;
+import ru.jabka.tttask.exception.BadRequestException;
 import ru.jabka.tttask.model.Status;
 import ru.jabka.tttask.model.Task;
 import ru.jabka.tttask.model.TaskRequest;
@@ -75,37 +76,33 @@ public class TaskService {
     }
 
     private void validateTaskRequest(final TaskRequest taskRequest) {
-        ofNullable(taskRequest).orElseThrow(() -> new RuntimeException("Заполните данные задачи"));
+        ofNullable(taskRequest).orElseThrow(() -> new BadRequestException("Заполните данные задачи"));
         if (!StringUtils.hasText(taskRequest.title())) {
-            throw new RuntimeException("Заполните заголовок задачи");
+            throw new BadRequestException("Заполните заголовок задачи");
         }
         if (!StringUtils.hasText(taskRequest.description())) {
-            throw new RuntimeException("Заполните описание задачи");
+            throw new BadRequestException("Заполните описание задачи");
         }
-        ofNullable(taskRequest.deadLine()).orElseThrow(() -> new RuntimeException("Заполните срок исполнения задачи"));
-        ofNullable(taskRequest.author()).orElseThrow(() -> new RuntimeException("Заполните автора задачи"));
-        ofNullable(taskRequest.assignee()).orElseThrow(() -> new RuntimeException("Заполните исполнителя задачи"));
+        ofNullable(taskRequest.deadLine()).orElseThrow(() -> new BadRequestException("Заполните срок исполнения задачи"));
+        ofNullable(taskRequest.author()).orElseThrow(() -> new BadRequestException("Заполните автора задачи"));
+        ofNullable(taskRequest.assignee()).orElseThrow(() -> new BadRequestException("Заполните исполнителя задачи"));
         Set<Long> members = Set.of(taskRequest.author(), taskRequest.assignee());
         checkMembersExists(members);
     }
 
     private void validateUpdateRequest(final UpdateTask updateTask) {
-        ofNullable(updateTask).orElseThrow(() -> new RuntimeException("Заполните данные для обновления"));
-        ofNullable(updateTask.id()).orElseThrow(() -> new RuntimeException("Не указан id задачи, которую необходимо обновить"));
-        Long assignee = updateTask.assignee();
-        ofNullable(assignee).orElseThrow(() -> new RuntimeException("Не указан id исполнителя"));
-        checkMembersExists(Collections.singleton(assignee));
-        //TODO доделать валидацию
+        ofNullable(updateTask).orElseThrow(() -> new BadRequestException("Заполните данные для обновления"));
+        ofNullable(updateTask.id()).orElseThrow(() -> new BadRequestException("Не указан id задачи, которую необходимо обновить"));
+        ofNullable(updateTask.assignee()).ifPresent(x -> checkMembersExists(Collections.singleton(x)));
     }
 
     private void checkMembersExists(final Set<Long> members) {
-        //TODO обрабатывать единичные запросы
         Set<Long> allByIds = userClient.getAllByIds(members).stream()
                 .map(UserResponse::id)
                 .collect(Collectors.toSet());
         for (Long member : members) {
             if (!allByIds.contains(member)) {
-                throw new RuntimeException(String.format("Пользователь с id = %d не найден", member));
+                throw new BadRequestException(String.format("Пользователь с id = %d не найден", member));
             }
         }
     }
