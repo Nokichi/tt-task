@@ -1,5 +1,6 @@
 package ru.jabka.tttask.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,23 +28,27 @@ public class TaskController {
     private final TaskService taskService;
 
     @PostMapping
+    @Operation(summary = "Создание новой задачи")
     public Task create(@RequestBody final TaskRequest taskRequest) {
         return taskService.create(taskRequest);
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Получение задачи по ID")
     public Task getById(@PathVariable final Long id) {
         return taskService.getById(id);
     }
 
     @PatchMapping
+    @Operation(summary = "Редактирование задачи")
     public Task update(@RequestBody final UpdateTask updateTask) {
         return taskService.update(updateTask);
     }
 
     @GetMapping
-    public Set<Task> getByFilter(@RequestParam(required = false) final Status status,
-                                 @RequestParam(required = false) final Long assignee) {
+    @Operation(summary = "Получение задачи по критериям")
+    public Set<Task> find(@RequestParam(required = false) final Status status,
+                          @RequestParam(required = false) final Long assignee) {
         return taskService.getAllByFilter(status, assignee);
     }
 }

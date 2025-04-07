@@ -42,24 +42,8 @@ public class TaskService {
     @Transactional(rollbackFor = Throwable.class)
     public Task update(final UpdateTask updateTask) {
         validateUpdateRequest(updateTask);
-        Task task = getById(updateTask.id());
-        Task.TaskBuilder taskBuilder = Task.builder().id(task.id());
-        ofNullable(updateTask.title()).ifPresentOrElse(
-                taskBuilder::title,
-                () -> taskBuilder.title(task.title()));
-        ofNullable(updateTask.description()).ifPresentOrElse(
-                taskBuilder::description,
-                () -> taskBuilder.description(task.description()));
-        ofNullable(updateTask.deadLine()).ifPresentOrElse(
-                taskBuilder::deadLine,
-                () -> taskBuilder.deadLine(task.deadLine()));
-        ofNullable(updateTask.assignee()).ifPresentOrElse(
-                taskBuilder::assignee,
-                () -> taskBuilder.assignee(task.assignee()));
-        ofNullable(updateTask.status()).ifPresentOrElse(
-                taskBuilder::status,
-                () -> taskBuilder.status(task.status()));
-        return taskRepository.update(taskBuilder.build());
+        Task updates = applyUpdates(getById(updateTask.id()), updateTask);
+        return taskRepository.update(updates);
     }
 
     @Transactional(readOnly = true)
@@ -93,6 +77,26 @@ public class TaskService {
         ofNullable(updateTask).orElseThrow(() -> new BadRequestException("Заполните данные для обновления"));
         ofNullable(updateTask.id()).orElseThrow(() -> new BadRequestException("Не указан id задачи, которую необходимо обновить"));
         ofNullable(updateTask.assignee()).ifPresent(x -> checkMembersExists(Collections.singleton(x)));
+    }
+
+    private Task applyUpdates(Task existedTask, final UpdateTask updateTask) {
+        Task.TaskBuilder taskBuilder = Task.builder().id(existedTask.id());
+        ofNullable(updateTask.title()).ifPresentOrElse(
+                taskBuilder::title,
+                () -> taskBuilder.title(existedTask.title()));
+        ofNullable(updateTask.description()).ifPresentOrElse(
+                taskBuilder::description,
+                () -> taskBuilder.description(existedTask.description()));
+        ofNullable(updateTask.deadLine()).ifPresentOrElse(
+                taskBuilder::deadLine,
+                () -> taskBuilder.deadLine(existedTask.deadLine()));
+        ofNullable(updateTask.assignee()).ifPresentOrElse(
+                taskBuilder::assignee,
+                () -> taskBuilder.assignee(existedTask.assignee()));
+        ofNullable(updateTask.status()).ifPresentOrElse(
+                taskBuilder::status,
+                () -> taskBuilder.status(existedTask.status()));
+        return taskBuilder.build();
     }
 
     private void checkMembersExists(final Set<Long> members) {
