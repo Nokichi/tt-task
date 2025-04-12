@@ -78,6 +78,151 @@ class TaskServiceTest {
     }
 
     @Test
+    void update_sucess_todo_to_in_progress() {
+        final UpdateTask updateTask = UpdateTask.builder()
+                .id(1L)
+                .status(Status.IN_PROGRESS)
+                .build();
+        final Task task = Task.builder()
+                .id(updateTask.id())
+                .title(updateTask.title())
+                .description(updateTask.description())
+                .deadLine(updateTask.deadLine())
+                .assignee(updateTask.assignee())
+                .status(Status.TO_DO)
+                .build();
+        final Task updated = Task.builder()
+                .id(task.id())
+                .title(task.title())
+                .description(task.description())
+                .deadLine(task.deadLine())
+                .assignee(task.assignee())
+                .status(updateTask.status())
+                .build();
+        Mockito.when(taskRepository.update(updated)).thenReturn(updated);
+        Mockito.when(taskRepository.getById(updateTask.id())).thenReturn(task);
+        Task result = taskService.update(updateTask);
+        Assertions.assertEquals(updated, result);
+        Mockito.verify(taskRepository).update(updated);
+    }
+
+    @Test
+    void update_sucess_todo_to_deleted() {
+        final UpdateTask updateTask = UpdateTask.builder()
+                .id(1L)
+                .status(Status.DELETED)
+                .build();
+        final Task task = Task.builder()
+                .id(updateTask.id())
+                .title(updateTask.title())
+                .description(updateTask.description())
+                .deadLine(updateTask.deadLine())
+                .assignee(updateTask.assignee())
+                .status(Status.TO_DO)
+                .build();
+        final Task updated = Task.builder()
+                .id(task.id())
+                .title(task.title())
+                .description(task.description())
+                .deadLine(task.deadLine())
+                .assignee(task.assignee())
+                .status(updateTask.status())
+                .build();
+        Mockito.when(taskRepository.update(updated)).thenReturn(updated);
+        Mockito.when(taskRepository.getById(updateTask.id())).thenReturn(task);
+        Task result = taskService.update(updateTask);
+        Assertions.assertEquals(updated, result);
+        Mockito.verify(taskRepository).update(updated);
+    }
+
+    @Test
+    void update_sucess_in_progress_to_done() {
+        final UpdateTask updateTask = UpdateTask.builder()
+                .id(1L)
+                .status(Status.DONE)
+                .build();
+        final Task task = Task.builder()
+                .id(updateTask.id())
+                .title(updateTask.title())
+                .description(updateTask.description())
+                .deadLine(updateTask.deadLine())
+                .assignee(updateTask.assignee())
+                .status(Status.IN_PROGRESS)
+                .build();
+        final Task updated = Task.builder()
+                .id(task.id())
+                .title(task.title())
+                .description(task.description())
+                .deadLine(task.deadLine())
+                .assignee(task.assignee())
+                .status(updateTask.status())
+                .build();
+        Mockito.when(taskRepository.update(updated)).thenReturn(updated);
+        Mockito.when(taskRepository.getById(updateTask.id())).thenReturn(task);
+        Task result = taskService.update(updateTask);
+        Assertions.assertEquals(updated, result);
+        Mockito.verify(taskRepository).update(updated);
+    }
+
+    @Test
+    void update_sucess_in_progress_to_deleted() {
+        final UpdateTask updateTask = UpdateTask.builder()
+                .id(1L)
+                .status(Status.DELETED)
+                .build();
+        final Task task = Task.builder()
+                .id(updateTask.id())
+                .title(updateTask.title())
+                .description(updateTask.description())
+                .deadLine(updateTask.deadLine())
+                .assignee(updateTask.assignee())
+                .status(Status.IN_PROGRESS)
+                .build();
+        final Task updated = Task.builder()
+                .id(task.id())
+                .title(task.title())
+                .description(task.description())
+                .deadLine(task.deadLine())
+                .assignee(task.assignee())
+                .status(updateTask.status())
+                .build();
+        Mockito.when(taskRepository.update(updated)).thenReturn(updated);
+        Mockito.when(taskRepository.getById(updateTask.id())).thenReturn(task);
+        Task result = taskService.update(updateTask);
+        Assertions.assertEquals(updated, result);
+        Mockito.verify(taskRepository).update(updated);
+    }
+
+    @Test
+    void update_sucess_done_to_deleted() {
+        final UpdateTask updateTask = UpdateTask.builder()
+                .id(1L)
+                .status(Status.DELETED)
+                .build();
+        final Task task = Task.builder()
+                .id(updateTask.id())
+                .title(updateTask.title())
+                .description(updateTask.description())
+                .deadLine(updateTask.deadLine())
+                .assignee(updateTask.assignee())
+                .status(Status.DONE)
+                .build();
+        final Task updated = Task.builder()
+                .id(task.id())
+                .title(task.title())
+                .description(task.description())
+                .deadLine(task.deadLine())
+                .assignee(task.assignee())
+                .status(updateTask.status())
+                .build();
+        Mockito.when(taskRepository.update(updated)).thenReturn(updated);
+        Mockito.when(taskRepository.getById(updateTask.id())).thenReturn(task);
+        Task result = taskService.update(updateTask);
+        Assertions.assertEquals(updated, result);
+        Mockito.verify(taskRepository).update(updated);
+    }
+
+    @Test
     void getById_success() {
         final Long taskId = 1L;
         final Task task = getValidTask();
@@ -353,6 +498,167 @@ class TaskServiceTest {
                 () -> taskService.update(updateTask)
         );
         Assertions.assertEquals("Срок исполнения не может быть в прошлом", exception.getMessage());
+        Mockito.verify(taskRepository, Mockito.never()).update(Mockito.any());
+    }
+
+    @Test
+    void update_error_todo_to_done_status() {
+        final UpdateTask updateTask = UpdateTask.builder()
+                .id(1L)
+                .status(Status.DONE)
+                .build();
+        final Task task = Task.builder()
+                .id(updateTask.id())
+                .title(updateTask.title())
+                .description(updateTask.description())
+                .deadLine(updateTask.deadLine())
+                .assignee(updateTask.assignee())
+                .status(Status.TO_DO)
+                .build();
+        Mockito.when(taskRepository.getById(task.id())).thenReturn(task);
+        final BadRequestException exception = Assertions.assertThrows(
+                BadRequestException.class,
+                () -> taskService.update(updateTask)
+        );
+        Assertions.assertEquals(String.format("Переход статуса из %s в %s невозможен", task.status(), updateTask.status()), exception.getMessage());
+        Mockito.verify(taskRepository, Mockito.never()).update(Mockito.any());
+    }
+
+    @Test
+    void update_error_in_progress_to_todo() {
+        final UpdateTask updateTask = UpdateTask.builder()
+                .id(1L)
+                .status(Status.TO_DO)
+                .build();
+        final Task task = Task.builder()
+                .id(updateTask.id())
+                .title(updateTask.title())
+                .description(updateTask.description())
+                .deadLine(updateTask.deadLine())
+                .assignee(updateTask.assignee())
+                .status(Status.IN_PROGRESS)
+                .build();
+        Mockito.when(taskRepository.getById(task.id())).thenReturn(task);
+        final BadRequestException exception = Assertions.assertThrows(
+                BadRequestException.class,
+                () -> taskService.update(updateTask)
+        );
+        Assertions.assertEquals(String.format("Переход статуса из %s в %s невозможен", task.status(), updateTask.status()), exception.getMessage());
+        Mockito.verify(taskRepository, Mockito.never()).update(Mockito.any());
+    }
+
+    @Test
+    void update_error_done_to_todo() {
+        final UpdateTask updateTask = UpdateTask.builder()
+                .id(1L)
+                .status(Status.TO_DO)
+                .build();
+        final Task task = Task.builder()
+                .id(updateTask.id())
+                .title(updateTask.title())
+                .description(updateTask.description())
+                .deadLine(updateTask.deadLine())
+                .assignee(updateTask.assignee())
+                .status(Status.DONE)
+                .build();
+        Mockito.when(taskRepository.getById(task.id())).thenReturn(task);
+        final BadRequestException exception = Assertions.assertThrows(
+                BadRequestException.class,
+                () -> taskService.update(updateTask)
+        );
+        Assertions.assertEquals(String.format("Переход статуса из %s в %s невозможен", task.status(), updateTask.status()), exception.getMessage());
+        Mockito.verify(taskRepository, Mockito.never()).update(Mockito.any());
+    }
+
+    @Test
+    void update_error_done_to_in_progress() {
+        final UpdateTask updateTask = UpdateTask.builder()
+                .id(1L)
+                .status(Status.IN_PROGRESS)
+                .build();
+        final Task task = Task.builder()
+                .id(updateTask.id())
+                .title(updateTask.title())
+                .description(updateTask.description())
+                .deadLine(updateTask.deadLine())
+                .assignee(updateTask.assignee())
+                .status(Status.DONE)
+                .build();
+        Mockito.when(taskRepository.getById(task.id())).thenReturn(task);
+        final BadRequestException exception = Assertions.assertThrows(
+                BadRequestException.class,
+                () -> taskService.update(updateTask)
+        );
+        Assertions.assertEquals(String.format("Переход статуса из %s в %s невозможен", task.status(), updateTask.status()), exception.getMessage());
+        Mockito.verify(taskRepository, Mockito.never()).update(Mockito.any());
+    }
+
+    @Test
+    void update_error_deleted_to_todo() {
+        final UpdateTask updateTask = UpdateTask.builder()
+                .id(1L)
+                .status(Status.TO_DO)
+                .build();
+        final Task task = Task.builder()
+                .id(updateTask.id())
+                .title(updateTask.title())
+                .description(updateTask.description())
+                .deadLine(updateTask.deadLine())
+                .assignee(updateTask.assignee())
+                .status(Status.DELETED)
+                .build();
+        Mockito.when(taskRepository.getById(task.id())).thenReturn(task);
+        final BadRequestException exception = Assertions.assertThrows(
+                BadRequestException.class,
+                () -> taskService.update(updateTask)
+        );
+        Assertions.assertEquals(String.format("Переход статуса из %s в %s невозможен", task.status(), updateTask.status()), exception.getMessage());
+        Mockito.verify(taskRepository, Mockito.never()).update(Mockito.any());
+    }
+
+    @Test
+    void update_error_deleted_to_in_progress() {
+        final UpdateTask updateTask = UpdateTask.builder()
+                .id(1L)
+                .status(Status.IN_PROGRESS)
+                .build();
+        final Task task = Task.builder()
+                .id(updateTask.id())
+                .title(updateTask.title())
+                .description(updateTask.description())
+                .deadLine(updateTask.deadLine())
+                .assignee(updateTask.assignee())
+                .status(Status.DELETED)
+                .build();
+        Mockito.when(taskRepository.getById(task.id())).thenReturn(task);
+        final BadRequestException exception = Assertions.assertThrows(
+                BadRequestException.class,
+                () -> taskService.update(updateTask)
+        );
+        Assertions.assertEquals(String.format("Переход статуса из %s в %s невозможен", task.status(), updateTask.status()), exception.getMessage());
+        Mockito.verify(taskRepository, Mockito.never()).update(Mockito.any());
+    }
+
+    @Test
+    void update_error_deleted_to_done() {
+        final UpdateTask updateTask = UpdateTask.builder()
+                .id(1L)
+                .status(Status.DONE)
+                .build();
+        final Task task = Task.builder()
+                .id(updateTask.id())
+                .title(updateTask.title())
+                .description(updateTask.description())
+                .deadLine(updateTask.deadLine())
+                .assignee(updateTask.assignee())
+                .status(Status.DELETED)
+                .build();
+        Mockito.when(taskRepository.getById(task.id())).thenReturn(task);
+        final BadRequestException exception = Assertions.assertThrows(
+                BadRequestException.class,
+                () -> taskService.update(updateTask)
+        );
+        Assertions.assertEquals(String.format("Переход статуса из %s в %s невозможен", task.status(), updateTask.status()), exception.getMessage());
         Mockito.verify(taskRepository, Mockito.never()).update(Mockito.any());
     }
 

@@ -7,6 +7,7 @@ import org.springframework.util.StringUtils;
 import ru.jabka.tttask.client.UserClient;
 import ru.jabka.tttask.exception.BadRequestException;
 import ru.jabka.tttask.model.Status;
+import ru.jabka.tttask.model.StatusTransition;
 import ru.jabka.tttask.model.Task;
 import ru.jabka.tttask.model.TaskRequest;
 import ru.jabka.tttask.model.UpdateTask;
@@ -103,10 +104,20 @@ public class TaskService {
         ofNullable(updateTask.assignee()).ifPresentOrElse(
                 taskBuilder::assignee,
                 () -> taskBuilder.assignee(existedTask.assignee()));
-        ofNullable(updateTask.status()).ifPresentOrElse(
-                taskBuilder::status,
+        ofNullable(updateTask.status()).ifPresentOrElse(newStatus -> {
+                    validateStatusTransition(existedTask.status(), newStatus);
+                    taskBuilder.status(newStatus);
+                },
                 () -> taskBuilder.status(existedTask.status()));
         return taskBuilder.build();
+    }
+
+    private void validateStatusTransition(Status currentStatus, Status requiredStatus) {
+        if (currentStatus.equals(requiredStatus)) {
+            return;
+        }
+        ofNullable(StatusTransition.findTransition(currentStatus, requiredStatus))
+                .orElseThrow(() -> new BadRequestException(String.format("Переход статуса из %s в %s невозможен", currentStatus, requiredStatus)));
     }
 
     private void checkMembersExists(final Set<Long> members) {
