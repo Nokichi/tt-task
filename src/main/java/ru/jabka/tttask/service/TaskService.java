@@ -13,6 +13,7 @@ import ru.jabka.tttask.model.UpdateTask;
 import ru.jabka.tttask.model.UserResponse;
 import ru.jabka.tttask.repository.TaskRepository;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -66,7 +67,9 @@ public class TaskService {
         if (!StringUtils.hasText(taskRequest.description())) {
             throw new BadRequestException("Заполните описание задачи");
         }
-        ofNullable(taskRequest.deadLine()).orElseThrow(() -> new BadRequestException("Заполните срок исполнения задачи"));
+        ofNullable(taskRequest.deadLine()).ifPresentOrElse(this::validateDeadLine, () -> {
+            throw new BadRequestException("Заполните срок исполнения задачи");
+        });
         ofNullable(taskRequest.author()).orElseThrow(() -> new BadRequestException("Заполните автора задачи"));
         ofNullable(taskRequest.assignee()).orElseThrow(() -> new BadRequestException("Заполните исполнителя задачи"));
         Set<Long> members = Set.of(taskRequest.author(), taskRequest.assignee());
@@ -77,6 +80,13 @@ public class TaskService {
         ofNullable(updateTask).orElseThrow(() -> new BadRequestException("Заполните данные для обновления"));
         ofNullable(updateTask.id()).orElseThrow(() -> new BadRequestException("Не указан id задачи, которую необходимо обновить"));
         ofNullable(updateTask.assignee()).ifPresent(x -> checkMembersExists(Collections.singleton(x)));
+        ofNullable(updateTask.deadLine()).ifPresent(this::validateDeadLine);
+    }
+
+    private void validateDeadLine(LocalDate deadLine) {
+        if (deadLine.isBefore(LocalDate.now())) {
+            throw new BadRequestException("Срок исполнения не может быть в прошлом");
+        }
     }
 
     private Task applyUpdates(Task existedTask, final UpdateTask updateTask) {

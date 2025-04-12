@@ -187,6 +187,23 @@ class TaskServiceTest {
     }
 
     @Test
+    void create_error_deadlineBeforeNow() {
+        final TaskRequest taskRequest = TaskRequest.builder()
+                .title("Title")
+                .description("description")
+                .deadLine(LocalDate.of(2019, 12, 10))
+                .author(1L)
+                .assignee(2L)
+                .build();
+        final BadRequestException exception = Assertions.assertThrows(
+                BadRequestException.class,
+                () -> taskService.create(taskRequest)
+        );
+        Assertions.assertEquals("Срок исполнения не может быть в прошлом", exception.getMessage());
+        Mockito.verify(taskRepository, Mockito.never()).insert(Mockito.any());
+    }
+
+    @Test
     void create_error_nullAuthor() {
         final TaskRequest taskRequest = TaskRequest.builder()
                 .title("Title")
@@ -315,6 +332,27 @@ class TaskServiceTest {
         Assertions.assertEquals(
                 String.format("Пользователь с id = %d не найден", updateTask.assignee()),
                 exception.getMessage());
+        Mockito.verify(taskRepository, Mockito.never()).update(Mockito.any());
+    }
+
+    @Test
+    void update_error_deadlineBeforeNow() {
+        final UpdateTask updateTask = UpdateTask.builder()
+                .id(1L)
+                .title("Title")
+                .description("description")
+                .deadLine(LocalDate.of(2019, 12, 10))
+                .assignee(2L)
+                .status(Status.TO_DO)
+                .build();
+        Set<Long> members = Set.of(updateTask.assignee());
+        Mockito.when(userClient.getAllByIds(members))
+                .thenReturn(idSetToUserResponseSet(members));
+        final BadRequestException exception = Assertions.assertThrows(
+                BadRequestException.class,
+                () -> taskService.update(updateTask)
+        );
+        Assertions.assertEquals("Срок исполнения не может быть в прошлом", exception.getMessage());
         Mockito.verify(taskRepository, Mockito.never()).update(Mockito.any());
     }
 
