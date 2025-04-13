@@ -17,6 +17,7 @@ import ru.jabka.tttask.model.TaskRequest;
 import ru.jabka.tttask.model.UpdateTask;
 import ru.jabka.tttask.service.TaskService;
 
+import java.util.List;
 import java.util.Set;
 
 @RestController
@@ -50,5 +51,11 @@ public class TaskController {
     public Set<Task> find(@RequestParam(required = false) final Status status,
                           @RequestParam(required = false) final Long assignee) {
         return taskService.getAllByFilter(status, assignee);
+    }
+
+    @GetMapping("/assignee/{id}")
+    @Operation(summary = "Получить все задания исполнителя по его ID")
+    public List<Task> getByAssigneeId(@PathVariable final Long id) {
+        return taskService.getByAssigneeId(id);
     }
 }

@@ -233,6 +233,17 @@ class TaskServiceTest {
     }
 
     @Test
+    void getByAssigneeId_success() {
+        final Task task = getValidTask();
+        final Long assignee = task.assignee();
+        List<Task> taskList = List.of(task);
+        Mockito.when(taskRepository.getByAssigneeId(assignee)).thenReturn(taskList);
+        List<Task> result = taskService.getByAssigneeId(assignee);
+        Assertions.assertEquals(taskList, result);
+        Mockito.verify(taskRepository).getByAssigneeId(assignee);
+    }
+
+    @Test
     void getAllByFilter_success_fullFilter() {
         final Status status = Status.TO_DO;
         final Long assignee = 1L;

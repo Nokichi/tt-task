@@ -32,6 +32,12 @@ public class TaskRepository {
               AND s.name <> 'DELETED'
             """;
 
+    private static final String GET_BY_ASSIGNEE_ID = """
+            SELECT t.*
+            FROM tt.task t
+            WHERE t.assignee = :id
+            """;
+
     private static final String UPDATE = """
             UPDATE tt.task
             SET title = :title, description = :description, dead_line = :dead_line, assignee = :assignee, status = :status, updated_at = CURRENT_TIMESTAMP
@@ -61,6 +67,10 @@ public class TaskRepository {
         } catch (Throwable e) {
             throw new BadRequestException(String.format("Задача с id %d не найдена", id));
         }
+    }
+
+    public List<Task> getByAssigneeId(final Long id) {
+        return jdbcTemplate.query(GET_BY_ASSIGNEE_ID, new MapSqlParameterSource("id", id), taskMapper);
     }
 
     public Task update(final Task task) {

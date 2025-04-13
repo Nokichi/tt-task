@@ -16,6 +16,7 @@ import ru.jabka.tttask.repository.TaskRepository;
 
 import java.time.LocalDate;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -51,6 +52,11 @@ public class TaskService {
     @Transactional(readOnly = true)
     public Task getById(final Long id) {
         return taskRepository.getById(id);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Task> getByAssigneeId(final Long id) {
+        return taskRepository.getByAssigneeId(id);
     }
 
     @Transactional(readOnly = true)
