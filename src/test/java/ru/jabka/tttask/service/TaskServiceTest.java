@@ -14,6 +14,7 @@ import ru.jabka.tttask.model.Task;
 import ru.jabka.tttask.model.TaskRequest;
 import ru.jabka.tttask.model.UpdateTask;
 import ru.jabka.tttask.model.UserResponse;
+import ru.jabka.tttask.model.UserRole;
 import ru.jabka.tttask.repository.TaskRepository;
 
 import java.time.LocalDate;
@@ -56,8 +57,16 @@ class TaskServiceTest {
     }
 
     @Test
-    void update_success() {
-        final UpdateTask updateTask = getValidUpdateTask();
+    void update_success_manager() {
+        final UpdateTask updateTask = UpdateTask.builder()
+                .id(1L)
+                .title("Title")
+                .description("description")
+                .deadLine(LocalDate.now())
+                .assignee(3L)
+                .status(Status.TO_DO)
+                .editor(mockManager().id())
+                .build();
         final Task task = Task.builder()
                 .id(updateTask.id())
                 .title(updateTask.title())
@@ -67,8 +76,10 @@ class TaskServiceTest {
                 .status(updateTask.status())
                 .build();
         Set<Long> members = Set.of(updateTask.assignee());
-        Mockito.when(userClient.getAllByIds(members))
-                .thenReturn(idSetToUserResponseSet(members));
+        UserResponse assignee = UserResponse.builder()
+                .id(updateTask.assignee())
+                .build();
+        Mockito.when(userClient.getAllByIds(members)).thenReturn(Set.of(assignee));
         Mockito.when(taskRepository.update(task)).thenReturn(task);
         Mockito.when(taskRepository.getById(updateTask.id())).thenReturn(task);
         Task result = taskService.update(updateTask);
@@ -78,10 +89,39 @@ class TaskServiceTest {
     }
 
     @Test
-    void update_sucess_todo_to_in_progress() {
+    void update_success_user() {
+        UserResponse user = mockUser();
+        final UpdateTask updateTask = UpdateTask.builder()
+                .id(1L)
+                .title("Title")
+                .description("description")
+                .deadLine(LocalDate.now())
+                .status(Status.TO_DO)
+                .editor(user.id())
+                .build();
+        final Task task = Task.builder()
+                .id(updateTask.id())
+                .title(updateTask.title())
+                .description(updateTask.description())
+                .deadLine(updateTask.deadLine())
+                .assignee(updateTask.assignee())
+                .status(updateTask.status())
+                .build();
+        Set<Long> members = Set.of(user.id());
+        Mockito.when(taskRepository.update(task)).thenReturn(task);
+        Mockito.when(taskRepository.getById(updateTask.id())).thenReturn(task);
+        Task result = taskService.update(updateTask);
+        Assertions.assertEquals(task, result);
+        Mockito.verify(taskRepository).update(task);
+        Mockito.verify(userClient).getAllByIds(members);
+    }
+
+    @Test
+    void update_success_todo_to_in_progress() {
         final UpdateTask updateTask = UpdateTask.builder()
                 .id(1L)
                 .status(Status.IN_PROGRESS)
+                .editor(mockManager().id())
                 .build();
         final Task task = Task.builder()
                 .id(updateTask.id())
@@ -107,10 +147,11 @@ class TaskServiceTest {
     }
 
     @Test
-    void update_sucess_todo_to_deleted() {
+    void update_success_todo_to_deleted() {
         final UpdateTask updateTask = UpdateTask.builder()
                 .id(1L)
                 .status(Status.DELETED)
+                .editor(mockManager().id())
                 .build();
         final Task task = Task.builder()
                 .id(updateTask.id())
@@ -136,10 +177,11 @@ class TaskServiceTest {
     }
 
     @Test
-    void update_sucess_in_progress_to_done() {
+    void update_success_in_progress_to_done() {
         final UpdateTask updateTask = UpdateTask.builder()
                 .id(1L)
                 .status(Status.DONE)
+                .editor(mockManager().id())
                 .build();
         final Task task = Task.builder()
                 .id(updateTask.id())
@@ -165,10 +207,11 @@ class TaskServiceTest {
     }
 
     @Test
-    void update_sucess_in_progress_to_deleted() {
+    void update_success_in_progress_to_deleted() {
         final UpdateTask updateTask = UpdateTask.builder()
                 .id(1L)
                 .status(Status.DELETED)
+                .editor(mockManager().id())
                 .build();
         final Task task = Task.builder()
                 .id(updateTask.id())
@@ -194,10 +237,11 @@ class TaskServiceTest {
     }
 
     @Test
-    void update_sucess_done_to_deleted() {
+    void update_success_done_to_deleted() {
         final UpdateTask updateTask = UpdateTask.builder()
                 .id(1L)
                 .status(Status.DELETED)
+                .editor(mockManager().id())
                 .build();
         final Task task = Task.builder()
                 .id(updateTask.id())
@@ -478,6 +522,7 @@ class TaskServiceTest {
                 .deadLine(LocalDate.now())
                 .assignee(2L)
                 .status(Status.TO_DO)
+                .editor(mockManager().id())
                 .build();
         Set<Long> members = Set.of(updateTask.assignee());
         Mockito.when(userClient.getAllByIds(members)).thenReturn(Set.of());
@@ -500,6 +545,7 @@ class TaskServiceTest {
                 .deadLine(LocalDate.of(2019, 12, 10))
                 .assignee(2L)
                 .status(Status.TO_DO)
+                .editor(mockManager().id())
                 .build();
         Set<Long> members = Set.of(updateTask.assignee());
         Mockito.when(userClient.getAllByIds(members))
@@ -517,6 +563,7 @@ class TaskServiceTest {
         final UpdateTask updateTask = UpdateTask.builder()
                 .id(1L)
                 .status(Status.DONE)
+                .editor(mockManager().id())
                 .build();
         final Task task = Task.builder()
                 .id(updateTask.id())
@@ -540,6 +587,7 @@ class TaskServiceTest {
         final UpdateTask updateTask = UpdateTask.builder()
                 .id(1L)
                 .status(Status.TO_DO)
+                .editor(mockManager().id())
                 .build();
         final Task task = Task.builder()
                 .id(updateTask.id())
@@ -563,6 +611,7 @@ class TaskServiceTest {
         final UpdateTask updateTask = UpdateTask.builder()
                 .id(1L)
                 .status(Status.TO_DO)
+                .editor(mockUser().id())
                 .build();
         final Task task = Task.builder()
                 .id(updateTask.id())
@@ -586,6 +635,7 @@ class TaskServiceTest {
         final UpdateTask updateTask = UpdateTask.builder()
                 .id(1L)
                 .status(Status.IN_PROGRESS)
+                .editor(mockUser().id())
                 .build();
         final Task task = Task.builder()
                 .id(updateTask.id())
@@ -609,6 +659,7 @@ class TaskServiceTest {
         final UpdateTask updateTask = UpdateTask.builder()
                 .id(1L)
                 .status(Status.TO_DO)
+                .editor(mockUser().id())
                 .build();
         final Task task = Task.builder()
                 .id(updateTask.id())
@@ -632,6 +683,7 @@ class TaskServiceTest {
         final UpdateTask updateTask = UpdateTask.builder()
                 .id(1L)
                 .status(Status.IN_PROGRESS)
+                .editor(mockUser().id())
                 .build();
         final Task task = Task.builder()
                 .id(updateTask.id())
@@ -655,6 +707,7 @@ class TaskServiceTest {
         final UpdateTask updateTask = UpdateTask.builder()
                 .id(1L)
                 .status(Status.DONE)
+                .editor(mockUser().id())
                 .build();
         final Task task = Task.builder()
                 .id(updateTask.id())
@@ -670,6 +723,51 @@ class TaskServiceTest {
                 () -> taskService.update(updateTask)
         );
         Assertions.assertEquals(String.format("Переход статуса из %s в %s невозможен", task.status(), updateTask.status()), exception.getMessage());
+        Mockito.verify(taskRepository, Mockito.never()).update(Mockito.any());
+    }
+
+    @Test
+    void update_error_user_permission() {
+        Long editor = mockUser().id();
+        final UpdateTask updateTask = UpdateTask.builder()
+                .id(1L)
+                .assignee(3L)
+                .editor(editor)
+                .build();
+        final BadRequestException exception = Assertions.assertThrows(
+                BadRequestException.class,
+                () -> taskService.update(updateTask)
+        );
+        Assertions.assertEquals(String.format("Роль пользователя id = %d, выполняющего редактирование, не соответствует роли %s", editor, UserRole.MANAGER), exception.getMessage());
+        Mockito.verify(taskRepository, Mockito.never()).update(Mockito.any());
+    }
+
+    @Test
+    void update_error_null_editor() {
+        final UpdateTask updateTask = UpdateTask.builder()
+                .id(1L)
+                .assignee(3L)
+                .build();
+        final BadRequestException exception = Assertions.assertThrows(
+                BadRequestException.class,
+                () -> taskService.update(updateTask)
+        );
+        Assertions.assertEquals("Не указан id пользователя, который редактирует задачу", exception.getMessage());
+        Mockito.verify(taskRepository, Mockito.never()).update(Mockito.any());
+    }
+
+    @Test
+    void update_error_editor_not_found() {
+        final UpdateTask updateTask = UpdateTask.builder()
+                .id(1L)
+                .description("123")
+                .editor(5L)
+                .build();
+        final BadRequestException exception = Assertions.assertThrows(
+                BadRequestException.class,
+                () -> taskService.update(updateTask)
+        );
+        Assertions.assertEquals(String.format("Пользователь с id = %d, выполняющий редактирование, не найден", updateTask.editor()), exception.getMessage());
         Mockito.verify(taskRepository, Mockito.never()).update(Mockito.any());
     }
 
@@ -697,22 +795,29 @@ class TaskServiceTest {
                 .build();
     }
 
-    private UpdateTask getValidUpdateTask() {
-        return UpdateTask.builder()
-                .id(1L)
-                .title("Title")
-                .description("description")
-                .deadLine(LocalDate.now())
-                .assignee(2L)
-                .status(Status.TO_DO)
-                .build();
-    }
-
     private Set<UserResponse> idSetToUserResponseSet(final Set<Long> ids) {
         return ids.stream()
                 .map(x -> UserResponse.builder()
                         .id(x)
                         .build())
                 .collect(Collectors.toSet());
+    }
+
+    private UserResponse mockUser() {
+        UserResponse userResponse = UserResponse.builder()
+                .id(8L)
+                .role(UserRole.USER)
+                .build();
+        Mockito.when(userClient.getAllByIds(Set.of(userResponse.id()))).thenReturn(Set.of(userResponse));
+        return userResponse;
+    }
+
+    private UserResponse mockManager() {
+        UserResponse userResponse = UserResponse.builder()
+                .id(7L)
+                .role(UserRole.MANAGER)
+                .build();
+        Mockito.when(userClient.getAllByIds(Set.of(userResponse.id()))).thenReturn(Set.of(userResponse));
+        return userResponse;
     }
 }

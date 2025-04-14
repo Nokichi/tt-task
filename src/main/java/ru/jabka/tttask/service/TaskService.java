@@ -12,6 +12,7 @@ import ru.jabka.tttask.model.Task;
 import ru.jabka.tttask.model.TaskRequest;
 import ru.jabka.tttask.model.UpdateTask;
 import ru.jabka.tttask.model.UserResponse;
+import ru.jabka.tttask.model.UserRole;
 import ru.jabka.tttask.repository.TaskRepository;
 
 import java.time.LocalDate;
@@ -86,7 +87,18 @@ public class TaskService {
     private void validateUpdateRequest(final UpdateTask updateTask) {
         ofNullable(updateTask).orElseThrow(() -> new BadRequestException("Заполните данные для обновления"));
         ofNullable(updateTask.id()).orElseThrow(() -> new BadRequestException("Не указан id задачи, которую необходимо обновить"));
-        ofNullable(updateTask.assignee()).ifPresent(x -> checkMembersExists(Collections.singleton(x)));
+        Long editorId = updateTask.editor();
+        ofNullable(editorId).orElseThrow(() -> new BadRequestException("Не указан id пользователя, который редактирует задачу"));
+        UserResponse editor = userClient.getAllByIds(Set.of(editorId))
+                .stream()
+                .filter(x -> editorId.equals(x.id())).findFirst()
+                .orElseThrow(() -> new BadRequestException(String.format("Пользователь с id = %d, выполняющий редактирование, не найден", editorId)));
+        ofNullable(updateTask.assignee()).ifPresent(x -> {
+            if (!UserRole.MANAGER.equals(editor.role())) {
+                throw new BadRequestException(String.format("Роль пользователя id = %d, выполняющего редактирование, не соответствует роли %s", editorId, UserRole.MANAGER));
+            }
+            checkMembersExists(Collections.singleton(x));
+        });
         ofNullable(updateTask.deadLine()).ifPresent(this::validateDeadLine);
     }
 
