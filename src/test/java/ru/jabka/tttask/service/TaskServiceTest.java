@@ -7,6 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.jabka.tttask.client.QueueClient;
 import ru.jabka.tttask.client.UserClient;
 import ru.jabka.tttask.exception.BadRequestException;
 import ru.jabka.tttask.model.Status;
@@ -16,6 +17,7 @@ import ru.jabka.tttask.model.UpdateTask;
 import ru.jabka.tttask.model.UserResponse;
 import ru.jabka.tttask.model.UserRole;
 import ru.jabka.tttask.repository.TaskRepository;
+import ru.jabka.tttask.util.HistoryWrapper;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -31,6 +33,9 @@ class TaskServiceTest {
 
     @Mock
     private UserClient userClient;
+
+    @Mock
+    private QueueClient queueClient;
 
     @InjectMocks
     private TaskService taskService;
@@ -54,6 +59,7 @@ class TaskServiceTest {
         Assertions.assertEquals(task, result);
         Mockito.verify(taskRepository).insert(task);
         Mockito.verify(userClient).getAllByIds(members);
+        Mockito.verify(queueClient).sendTaskHistory(HistoryWrapper.prepareMessage(result, result.author()));
     }
 
     @Test
@@ -86,6 +92,7 @@ class TaskServiceTest {
         Assertions.assertEquals(task, result);
         Mockito.verify(taskRepository).update(task);
         Mockito.verify(userClient).getAllByIds(members);
+        Mockito.verify(queueClient).sendTaskHistory(HistoryWrapper.prepareMessage(result, updateTask.editor()));
     }
 
     @Test

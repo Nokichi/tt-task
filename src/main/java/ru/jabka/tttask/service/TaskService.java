@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import ru.jabka.tttask.client.QueueClient;
 import ru.jabka.tttask.client.UserClient;
 import ru.jabka.tttask.exception.BadRequestException;
 import ru.jabka.tttask.model.Status;
@@ -14,6 +15,7 @@ import ru.jabka.tttask.model.UpdateTask;
 import ru.jabka.tttask.model.UserResponse;
 import ru.jabka.tttask.model.UserRole;
 import ru.jabka.tttask.repository.TaskRepository;
+import ru.jabka.tttask.util.HistoryWrapper;
 
 import java.time.LocalDate;
 import java.util.Collections;
@@ -29,11 +31,12 @@ public class TaskService {
 
     private final TaskRepository taskRepository;
     private final UserClient userClient;
+    private final QueueClient queueClient;
 
     @Transactional(rollbackFor = Throwable.class)
     public Task create(final TaskRequest taskRequest) {
         validateTaskRequest(taskRequest);
-        return taskRepository.insert(Task.builder()
+        Task inserted = taskRepository.insert(Task.builder()
                 .title(taskRequest.title())
                 .description(taskRequest.description())
                 .status(Status.TO_DO)
@@ -41,13 +44,17 @@ public class TaskService {
                 .author(taskRequest.author())
                 .assignee(taskRequest.assignee())
                 .build());
+        queueClient.sendTaskHistory(HistoryWrapper.prepareMessage(inserted, inserted.author()));
+        return inserted;
     }
 
     @Transactional(rollbackFor = Throwable.class)
     public Task update(final UpdateTask updateTask) {
         validateUpdateRequest(updateTask);
         Task updates = applyUpdates(getById(updateTask.id()), updateTask);
-        return taskRepository.update(updates);
+        Task task = taskRepository.update(updates);
+        queueClient.sendTaskHistory(HistoryWrapper.prepareMessage(task, updateTask.editor()));
+        return task;
     }
 
     @Transactional(readOnly = true)
