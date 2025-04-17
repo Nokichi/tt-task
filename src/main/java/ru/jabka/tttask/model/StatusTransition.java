@@ -11,9 +11,9 @@ public enum StatusTransition {
     private final Status from;
     private final Status to;
 
-    StatusTransition(Status from, Status status) {
+    StatusTransition(Status from, Status to) {
         this.from = from;
-        to = status;
+        this.to = to;
     }
 
     public static StatusTransition findTransition(Status from, Status to) {

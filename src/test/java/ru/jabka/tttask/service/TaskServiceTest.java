@@ -284,14 +284,12 @@ class TaskServiceTest {
     }
 
     @Test
-    void getByAssigneeId_success() {
-        final Task task = getValidTask();
-        final Long assignee = task.assignee();
-        List<Task> taskList = List.of(task);
-        Mockito.when(taskRepository.getByAssigneeId(assignee)).thenReturn(taskList);
-        List<Task> result = taskService.getByAssigneeId(assignee);
-        Assertions.assertEquals(taskList, result);
-        Mockito.verify(taskRepository).getByAssigneeId(assignee);
+    void existsActiveTasksByAssignee() {
+        final Long assignee = getValidTask().assignee();
+        Mockito.when(taskRepository.existsActiveTasksByAssignee(assignee)).thenReturn(true);
+        Boolean result = taskService.existsActiveTasksByAssignee(assignee);
+        Assertions.assertEquals(true, result);
+        Mockito.verify(taskRepository).existsActiveTasksByAssignee(assignee);
     }
 
     @Test

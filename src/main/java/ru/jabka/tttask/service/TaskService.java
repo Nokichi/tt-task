@@ -19,7 +19,6 @@ import ru.jabka.tttask.util.HistoryWrapper;
 
 import java.time.LocalDate;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -63,8 +62,8 @@ public class TaskService {
     }
 
     @Transactional(readOnly = true)
-    public List<Task> getByAssigneeId(final Long id) {
-        return taskRepository.getByAssigneeId(id);
+    public boolean existsActiveTasksByAssignee(final Long id) {
+        return taskRepository.existsActiveTasksByAssignee(id);
     }
 
     @Transactional(readOnly = true)

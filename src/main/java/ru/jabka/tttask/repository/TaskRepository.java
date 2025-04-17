@@ -32,10 +32,14 @@ public class TaskRepository {
               AND s.name <> 'DELETED'
             """;
 
-    private static final String GET_BY_ASSIGNEE_ID = """
-            SELECT t.*
-            FROM tt.task t
-            WHERE t.assignee = :id
+    private static final String EXISTS_ACTIVE_TASKS_BY_ASSIGNEE = """
+            SELECT EXISTS (
+                SELECT 1
+                FROM tt.task t
+                JOIN tt.status s ON s.id = t.status
+                WHERE t.assignee = :id
+                  AND s.name NOT IN ('DELETED', 'DONE')
+            ) AS has_active_tasks
             """;
 
     private static final String UPDATE = """
@@ -69,8 +73,8 @@ public class TaskRepository {
         }
     }
 
-    public List<Task> getByAssigneeId(final Long id) {
-        return jdbcTemplate.query(GET_BY_ASSIGNEE_ID, new MapSqlParameterSource("id", id), taskMapper);
+    public boolean existsActiveTasksByAssignee(final Long assigneeId) {
+        return jdbcTemplate.queryForObject(EXISTS_ACTIVE_TASKS_BY_ASSIGNEE, new MapSqlParameterSource("id", assigneeId), Boolean.class);
     }
 
     public Task update(final Task task) {

@@ -17,7 +17,6 @@ import ru.jabka.tttask.model.TaskRequest;
 import ru.jabka.tttask.model.UpdateTask;
 import ru.jabka.tttask.service.TaskService;
 
-import java.util.List;
 import java.util.Set;
 
 @RestController
@@ -53,9 +52,9 @@ public class TaskController {
         return taskService.getAllByFilter(status, assignee);
     }
 
-    @GetMapping("/assignee/{id}")
-    @Operation(summary = "Получить все задания исполнителя по его ID")
-    public List<Task> getByAssigneeId(@PathVariable final Long id) {
-        return taskService.getByAssigneeId(id);
+    @GetMapping("/active")
+    @Operation(summary = "Проверить, назначены ли на исполнителя активные задачи")
+    public Boolean existsActiveTasksByAssignee(@RequestParam final Long assigneeId) {
+        return taskService.existsActiveTasksByAssignee(assigneeId);
     }
 }
