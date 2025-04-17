@@ -12,6 +12,6 @@ public record UpdateTask(
         LocalDate deadLine,
         Long assignee,
         Status status,
-        Long editor //TODO пока для справочной информации
+        Long editor
 ) {
 }
