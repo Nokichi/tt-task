@@ -32,6 +32,16 @@ public class TaskRepository {
               AND s.name <> 'DELETED'
             """;
 
+    private static final String EXISTS_ACTIVE_TASKS_BY_ASSIGNEE = """
+            SELECT EXISTS (
+                SELECT 1
+                FROM tt.task t
+                JOIN tt.status s ON s.id = t.status
+                WHERE t.assignee = :id
+                  AND s.name NOT IN ('DELETED', 'DONE')
+            ) AS has_active_tasks
+            """;
+
     private static final String UPDATE = """
             UPDATE tt.task
             SET title = :title, description = :description, dead_line = :dead_line, assignee = :assignee, status = :status, updated_at = CURRENT_TIMESTAMP
@@ -61,6 +71,10 @@ public class TaskRepository {
         } catch (Throwable e) {
             throw new BadRequestException(String.format("Задача с id %d не найдена", id));
         }
+    }
+
+    public boolean existsActiveTasksByAssignee(final Long assigneeId) {
+        return jdbcTemplate.queryForObject(EXISTS_ACTIVE_TASKS_BY_ASSIGNEE, new MapSqlParameterSource("id", assigneeId), Boolean.class);
     }
 
     public Task update(final Task task) {

@@ -51,4 +51,10 @@ public class TaskController {
                           @RequestParam(required = false) final Long assignee) {
         return taskService.getAllByFilter(status, assignee);
     }
+
+    @GetMapping("/active")
+    @Operation(summary = "Проверить, назначены ли на исполнителя активные задачи")
+    public Boolean existsActiveTasksByAssignee(@RequestParam final Long assigneeId) {
+        return taskService.existsActiveTasksByAssignee(assigneeId);
+    }
 }

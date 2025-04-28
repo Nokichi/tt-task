@@ -8,5 +8,14 @@ spring:
     url: jdbc:postgresql://localhost:5432/tt_task
     username: test
     password: ${DB_PG_PWD}
+  rabbitmq:
+    addresses: localhost:5672
+    username: guest
+    password: ${RABBITMQ_PWD}
+    virtual-host: tt-host
 services:
   user-service-url: http://localhost:8081
+app:
+  rabbitmq:
+    queue-tasks: history.tasks-queue
+    exchange: history-exchange
