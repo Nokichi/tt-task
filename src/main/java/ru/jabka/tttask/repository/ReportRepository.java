@@ -62,11 +62,13 @@ public class ReportRepository {
                     COUNT(CASE WHEN status = 1 THEN 1 END) AS team_todo_count,
                     COUNT(CASE WHEN status = 2 THEN 1 END) AS team_in_progress_count,
                     COUNT(CASE WHEN status = 3 THEN 1 END) AS team_done_count,
-                    AVG(
-                        CASE
-                            WHEN status = 3
-                            THEN EXTRACT(EPOCH FROM (updated_at - created_at)) / 3600
-                        END
+                    ROUND(
+                        AVG(
+                            CASE
+                                WHEN status = 3
+                                THEN EXTRACT(EPOCH FROM (updated_at - created_at)) / 3600
+                            END
+                        )::numeric, 5
                     ) AS team_avg_hours_to_done
                 FROM date_filtered_tasks
             )

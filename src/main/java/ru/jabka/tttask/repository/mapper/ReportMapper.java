@@ -16,7 +16,6 @@ public class ReportMapper implements RowMapper<Report> {
 
     @Override
     public Report mapRow(ResultSet rs, int rowNum) throws SQLException {
-        double teamAvgHoursToDone = Math.round(rs.getDouble("team_avg_hours_to_done") * 10000.0) / 10000.0;
         String topAssigneesJson = rs.getString("top_assignees_json");
         ObjectMapper mapper = new ObjectMapper();
         MemberWithTaskCount[] memberWithTaskCounts;
@@ -30,7 +29,7 @@ public class ReportMapper implements RowMapper<Report> {
                 .todoTeamTasks(rs.getLong("team_todo_count"))
                 .inProgressTeamTasks(rs.getLong("team_in_progress_count"))
                 .doneTeamTasks(rs.getLong("team_done_count"))
-                .avgHoursTaskToDone(teamAvgHoursToDone)
+                .avgHoursTaskToDone(rs.getDouble("team_avg_hours_to_done"))
                 .topMembersWithTasksCount(List.of(memberWithTaskCounts))
                 .build();
     }
