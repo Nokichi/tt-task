@@ -15,6 +15,7 @@ spring:
     virtual-host: tt-host
 services:
   user-service-url: http://localhost:8081
+  team-service-url: http://localhost:8084
 app:
   rabbitmq:
     queue-tasks: history.tasks-queue

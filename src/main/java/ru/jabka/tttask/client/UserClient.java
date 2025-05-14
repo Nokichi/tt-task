@@ -12,11 +12,11 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class UserClient {
 
-    private final RestTemplate restTemplate;
+    private final RestTemplate userServiceRestTemplate;
 
     public Set<UserResponse> getAllByIds(final Set<Long> ids) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUriString("/api/v1/user");
         ids.forEach(id -> builder.queryParam("ids", id));
-        return Set.of(restTemplate.getForObject(builder.toUriString(), UserResponse[].class));
+        return Set.of(userServiceRestTemplate.getForObject(builder.toUriString(), UserResponse[].class));
     }
 }
